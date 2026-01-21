@@ -1,0 +1,99 @@
+Titolo = ['Calendario FERIE ROSSE',
+          'Personale TPT',
+          'La Spezia']
+def fileTolista(nome_file: str):
+    """
+    La funzione carica in una lista il file di testo
+    in cui ho salvato le date e i nomi
+    dei TPT che devono smaltire le ferie
+    :param nome_file: nomi.txt
+    :return: la lista contenente il testo del file
+    """
+    calendario_grezzo = []
+    testo = open(nome_file)
+    for riga in testo:
+        calendario_grezzo.append(riga.strip('\n'))
+    # calendario_grezzo = testo.readlines()
+    testo.close()
+    return calendario_grezzo
+def TitoloRiquadro(righe: list):
+    """
+    Crea un titolo per presentare il
+    report
+    :param righe: tipo tupla o lista
+    :return: nessuno
+    """
+    print("=================================")
+    for linea in righe:
+        print('\t', linea)
+    print("=================================")
+def EstraeParole(lista: list):
+    """
+    La funzione restituisce una nuova lista
+    dei nomi contenuti nella vecchia lista
+    escludendone le date che vengono cancellate
+    Inoltre la lista viene ordinata in ordine
+    alfabetico con SORT().
+    :param lista:
+    :return: la nuova lista , ORDINATA E senza le date
+    """
+    solo_parole = []
+    nome: str
+    for nome in lista:
+        if nome.isalpha():
+            solo_parole.append(nome)
+    solo_parole.sort()
+    return solo_parole
+def EliminaStringheDoppie(lista: list):
+    """
+    La funzione restituisce una nuova lista
+    in cui sono stati eliminate i doppioni.
+    :param lista: list
+    :return: la nuova lista senza le doppie stringhe
+    """
+    lista_ordinata = []
+    for nome in lista:
+        if nome not in lista_ordinata:
+            lista_ordinata.append(nome)
+    return lista_ordinata
+def Calendario_settimanale_TPT(lista: list, origine: list):
+    """
+    La funzione estrae il calendario settimanale
+    del personale tpt in servizio
+    :lista : è la lista ordinata e senza doppioni
+    :origine: è la lista originale estratta dal file txt
+    :return: nulla
+    """
+    # La stringa "finale" conterrà
+    # la riga con il nome del TPT
+    # e le sue assenze
+    finale: str
+    lettura: str
+    giorno = ""
+    n = 0
+    testo = open("nomi.txt", 'w')
+    for nome in lista:
+        '''
+         FORMATTO LA  VISUALIZZAZIONE
+         USANDO LE TABULAZIONI
+        '''
+        if len(nome) >= 8:
+            finale = nome + '\t'
+        else:
+            finale = nome + '\t\t'
+        for lettura in origine:
+            if lettura.isnumeric():
+                giorno = lettura
+                continue
+            if lettura == nome:
+                finale = finale + " " + giorno
+                n += 1
+        testo.write(finale + '\n')
+        print(finale)
+    testo.close()
+    print("=================================")
+    print("\nTotale ferie : ", n)
+TitoloRiquadro(Titolo)
+Calendario_settimanale_TPT(
+    EliminaStringheDoppie(
+        EstraeParole(fileTolista("ferie-rosse.txt"))), fileTolista("ferie-rosse.txt"))
