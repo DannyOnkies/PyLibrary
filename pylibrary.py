@@ -155,7 +155,7 @@ def main():
     righe = leggi_codice_file(modulo_py)
     funzioni_py = estrai_funzioni(righe)
 
-    print(f'\n Queste sono le funzioni presenti in {modulo_py}\n')
+    print(f'\n Queste sono le funzioni presenti nel modulo {modulo_py}\n')
     for i in funzioni_py:
         print(i)
 
