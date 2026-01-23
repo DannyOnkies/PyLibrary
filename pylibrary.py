@@ -165,6 +165,15 @@ def estrai_docstring(stringa_unica):
     return stringa_unica[step1:step2]
 
 def estrai_codice(stringa_unica):
+    """
+    La funzione estrae il codice python
+
+    Il codice si trova al termine della docstring
+
+    Args: la stringa da controllare
+
+    Returns: la parte successiva a i doppi apici
+    """
     step = stringa_unica.rfind('"""') + 3
     return stringa_unica[step:]
 
