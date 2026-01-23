@@ -119,25 +119,54 @@ def estrai_funzioni(file_py_lista):
         {...}
     ]
     """
-    lista_temporanea = []
+    # questa lista conterrà i dizionari
+    lista_finale = []
+    # questa stringa conterrà il codice della funzione
+    stringa_codice = ''
     i=0
     while i < len(file_py_lista)-1:
         i += 1
         if 'def ' in file_py_lista[i] and file_py_lista[i][0] == 'd':
+            # creo un dizionario che conterrà i dati della funzione
+            info_funzione = {}
             # estrae dalla riga con il tag "def" solo il nome della funzione
             nome_funzione_pulito = file_py_lista[i].split('(')[0].split()[1]
-            #lista_temporanea.append(file_py_lista[i].rstrip())
-            lista_temporanea.append(nome_funzione_pulito)
+            # aggiungo il nome della funzione al dizionario
+            info_funzione['nome'] = nome_funzione_pulito
             # condizioni affinchè il ciclo interno prosegua:
             # 1 - l'incremento di linea deve essere minore del numero di righe totale
             # 2 - l'inizio della riga deve essere uno spazio perche significa che siamo dentro a una funzione
             # 3 - può essere presente una linea vuota
             while (i + 1 < len(file_py_lista)) and (file_py_lista[i+1].startswith(' ') or file_py_lista[i+1].strip() == ''):
                 i += 1
-                lista_temporanea.append(file_py_lista[i].rstrip())
-    return lista_temporanea
+                # leggo una riga e l'aggiungo alla stringa globale del codice
+                stringa_codice += file_py_lista[i]
+            # aggiungo la documentazione al dizionario
+            info_funzione['docstring'] = estrai_docstring(stringa_codice)
+            # aggiungo il codice al dizionario
+            info_funzione['codice'] = estrai_codice(stringa_codice)
+            # il dizionario è completo e lo aggiungo alla lista
+            lista_finale.append(info_funzione)
+    return lista_finale
 
+def estrai_docstring(stringa_unica):
+    """
+    La funzione estrae il testo compreso tra i triplici doppi apici
 
+    find restituisce la posizione della prima istanza
+    rfind la posizione della seconda istanza
+
+    Args: la stringa da controllare
+
+    Returns: la parte compresa tra i doppi apici
+    """
+    step1 = stringa_unica.find('"""') + 3
+    step2 = stringa_unica.rfind('"""')
+    return stringa_unica[step1:step2]
+
+def estrai_codice(stringa_unica):
+    step = stringa_unica.rfind('"""') + 3
+    return stringa_unica[step:]
 
 # ==============================
 #  SEZIONE MAIN
@@ -159,6 +188,10 @@ def main():
     for i in funzioni_py:
         print(i)
 
+    print('\n=================================')
+    print(funzioni_py[0]['nome'])
+    print(funzioni_py[0]['docstring'])
+    print(funzioni_py[0]['codice'])
 # ==============================
 #  PUNTO DI INGRESSO
 # ==============================
