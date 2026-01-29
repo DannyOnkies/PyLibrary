@@ -1,7 +1,25 @@
+# --- Archivio Dati PyLibrary ---
+# Esclude l'indice delle funzioni generato (37.5 MB)
+archivio_pylibrary.json
+
+# --- Python ---
+# Cartelle di compilazione e cache
 __pycache__/
 *.py[cod]
-.venv/
-.idea/
+*$py.class
+.pytest_cache/
 
-funzioni.txt
-readme.docx
+# --- Jupyter Notebook ---
+# File temporanei di checkpoint
+.ipynb_checkpoints/
+
+# --- Ambienti Virtuali ---
+# Se dovessi crearne uno per gestire le librerie
+.venv/
+venv/
+env/
+
+# --- OS (Opzionale) ---
+# File di sistema che sporcano il repository
+.DS_Store
+Thumbs.db

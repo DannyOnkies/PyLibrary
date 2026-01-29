@@ -15,7 +15,7 @@
 #  SEZIONE IMPORT
 # ==============================
 import os
-
+import json
 
 # import sys
 # import math
@@ -24,8 +24,7 @@ import os
 # ==============================
 #  SEZIONE COSTANTI & VARIABILI
 # ==============================
-VERSIONE = "0.3"
-modulo_py = r'C:\Users\danie\Desktop\PythonCode\Crea_indice_cartelle\makeIndex.py'
+VERSIONE = "0.4"
 dir_progetti_python = r'C:\Users\danie\Desktop\PythonCode'
 
 
@@ -90,6 +89,7 @@ def leggi_codice_file(file_py):
 
     Apre il file in modalità lettura e restituisce
     una lista dove ogni elemento è una riga del file.
+    Serve a estrai_funzioni
 
     Args: file_py - una stringa col percorso del file *.py
 
@@ -102,14 +102,14 @@ def leggi_codice_file(file_py):
     return new_lista_file_py
 
 
-def estrai_funzioni(file_py_lista):
+def estrai_funzioni(file_py_lista, path_originale):
     """
     Estrae le funzioni dal file di codice python
 
-    Il file convertito in lista viene analizzato con un parser
-    a 2 cicli while, che mediante filtratura estrae le righe
-    comprese tra il def nomefunzione(attr) e l'ultima riga della
-    funzione.
+    Il file convertito in lista  da leggi_codice_file viene
+    analizzato con un parser a 2 cicli while, che mediante
+    filtratura estrae le righe comprese tra il
+    def nomefunzione(attr) e l'ultima riga della funzione.
 
     Args: file_py_lista - è il file python convertito in lista
 
@@ -121,18 +121,25 @@ def estrai_funzioni(file_py_lista):
     """
     # questa lista conterrà i dizionari
     lista_finale = []
-    # questa stringa conterrà il codice della funzione
-    stringa_codice = ''
-    i=0
+    # stringa globale conterrà il codice della funzione
+    #stringa_codice = ''
+    i = -1
     while i < len(file_py_lista)-1:
         i += 1
-        if 'def ' in file_py_lista[i] and file_py_lista[i][0] == 'd':
+        #if 'def ' in file_py_lista[i] and file_py_lista[i][0] == 'd':
+        if file_py_lista[i].startswith('def '):
+            # stringa globale conterrà il codice della funzione
+            stringa_codice = ""
+            #aggiungo subito il nome della funzione alla stringa
+            stringa_codice += file_py_lista[i]
             # creo un dizionario che conterrà i dati della funzione
             info_funzione = {}
             # estrae dalla riga con il tag "def" solo il nome della funzione
             nome_funzione_pulito = file_py_lista[i].split('(')[0].split()[1]
             # aggiungo il nome della funzione al dizionario
             info_funzione['nome'] = nome_funzione_pulito
+            # aggiungo il path del file che contiene la funzione al dizionario
+            info_funzione['path_file'] = path_originale
             # condizioni affinchè il ciclo interno prosegua:
             # 1 - l'incremento di linea deve essere minore del numero di righe totale
             # 2 - l'inizio della riga deve essere uno spazio perche significa che siamo dentro a una funzione
@@ -141,6 +148,8 @@ def estrai_funzioni(file_py_lista):
                 i += 1
                 # leggo una riga e l'aggiungo alla stringa globale del codice
                 stringa_codice += file_py_lista[i]
+
+            # il secondo while ha terminato il suo ciclo
             # aggiungo la documentazione al dizionario
             info_funzione['docstring'] = estrai_docstring(stringa_codice)
             # aggiungo il codice al dizionario
@@ -160,9 +169,12 @@ def estrai_docstring(stringa_unica):
 
     Returns: la parte compresa tra i doppi apici
     """
-    step1 = stringa_unica.find('"""') + 3
-    step2 = stringa_unica.rfind('"""')
-    return stringa_unica[step1:step2]
+    if stringa_unica.find('"""') != -1:
+        step1 = stringa_unica.find('"""') + 3
+        step2 = stringa_unica.rfind('"""')
+        return stringa_unica[step1:step2]
+    else:
+        return 'Nessuna documentazione presente'
 
 def estrai_codice(stringa_unica):
     """
@@ -174,8 +186,34 @@ def estrai_codice(stringa_unica):
 
     Returns: la parte successiva a i doppi apici
     """
-    step = stringa_unica.rfind('"""') + 3
-    return stringa_unica[step:]
+    if stringa_unica.find('"""') != -1:
+        step = stringa_unica.rfind('"""') + 3
+        return stringa_unica[step:]
+    else:
+        return stringa_unica
+
+
+
+def salva_dati_json(lista_dati, nome_file="archivio_pylibrary.json"):
+    """
+    Salva la lista di dizionari in un file formato JSON
+
+    Integrato controllo per evitare problmi con caratteri
+    speciali come le lettere accentate o i backslash dei
+    percorsi Windows
+
+    Args: intera lista di dizionari delle funzioni estratte
+
+    Returns: non restituisce nulla
+    """
+    try:
+        with open(nome_file, 'w', encoding='utf-8') as f:
+            # ensure_ascii=False serve per leggere bene i path Windows e le accentate
+            json.dump(lista_dati, f, indent=4, ensure_ascii=False)
+        print(f"\n✅ Archivio salvato con successo in: {nome_file}")
+    except Exception as e:
+        print(f"\n❌ Errore durante il salvataggio: {e}")
+
 
 # ==============================
 #  SEZIONE MAIN
@@ -183,6 +221,7 @@ def estrai_codice(stringa_unica):
 def main():
     lista_cartelle = trova_progetti(dir_progetti_python)
 
+    # creo un unica lista con tutti i file .python
     lista_file_pyton = []
     for cartella in lista_cartelle:
         lista_file_pyton = lista_file_pyton + elenca_file_python(cartella)
@@ -190,17 +229,33 @@ def main():
     print(f'Nella cartella {dir_progetti_python} ci sono {len(lista_cartelle)} cartelle')
     print(f'Ho trovato {len(lista_file_pyton)} file con estensione *.py')
 
-    righe = leggi_codice_file(modulo_py)
-    funzioni_py = estrai_funzioni(righe)
+    archivio_totale = []
+    for file_py in lista_file_pyton:
+        righe = leggi_codice_file(file_py)
+        funzioni_py = estrai_funzioni(righe, file_py)
+        archivio_totale.extend(funzioni_py)
 
-    print(f'\n Queste sono le funzioni presenti nel modulo {modulo_py}\n')
-    for i in funzioni_py:
-        print(i)
+    # salvo tutte le funzioni in un archivio globale
+    salva_dati_json(archivio_totale)
 
-    print('\n=================================')
-    print(funzioni_py[0]['nome'])
-    print(funzioni_py[0]['docstring'])
-    print(funzioni_py[0]['codice'])
+
+    num_stampa_func = 10
+    print('\n=====================================================================')
+    print(f' Stampo i dati delle prime {num_stampa_func} funzioni con documentazione presente')
+    print('======================================================================')
+    counter=0
+    for funzione in archivio_totale:
+        if funzione['docstring'] != "Nessuna documentazione presente":
+            print('\n=================================================')
+            print('Path file *.py: ',funzione['path_file'])
+            print('Nome funzione: ',funzione['nome'])
+            print('💼 Documentazione:')
+            print(funzione['docstring'].strip())
+            print('💾 Codice:')
+            print(funzione['codice'].strip())
+            counter+=1
+        if counter >= num_stampa_func:
+            break
 # ==============================
 #  PUNTO DI INGRESSO
 # ==============================
