@@ -24,8 +24,8 @@ import json
 # ==============================
 #  SEZIONE COSTANTI & VARIABILI
 # ==============================
-VERSIONE = "0.4"
-dir_progetti_python = r'C:\Users\danie\Desktop\PythonCode'
+VERSIONE = "1.1"
+dir_progetti_python = r'path\della\cartella\progetti'
 
 
 # ==============================
